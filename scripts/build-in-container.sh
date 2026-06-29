@@ -7,7 +7,6 @@ readonly BUILD_IN_CONTAINER_SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 PREFIX=${PREFIX:?PREFIX is required}
 PROFILE_FILE=${PROFILE_FILE:?PROFILE_FILE is required}
 VERSION_FILE=${VERSION_FILE:?VERSION_FILE is required}
-STAGE_DIR=${STAGE_DIR:-/staging}
 SRC_ROOT=${SRC_ROOT:-/sources}
 BUILD_ROOT=${BUILD_ROOT:-/build}
 OUT_ROOT=${OUT_ROOT:-/out}
@@ -35,7 +34,7 @@ install_xcb_errors() {
   make -C "${src_dir}" -j"$(nproc)"
 
   log "installing xcb-errors"
-  make -C "${src_dir}" DESTDIR="${STAGE_DIR}" install
+  make -C "${src_dir}" install
 }
 
 render_runtime_wrappers() {
@@ -205,6 +204,6 @@ render_runtime_wrappers
 install_examples
 
 rm -rf "${OUT_ROOT}"
-mkdir -p "${OUT_ROOT}"
-cp -a "${STAGE_DIR}/." "${OUT_ROOT}/"
+mkdir -p "${OUT_ROOT}${PREFIX}"
+cp -a "${PREFIX}/." "${OUT_ROOT}${PREFIX}/"
 write_build_metadata

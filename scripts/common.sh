@@ -6,10 +6,9 @@ readonly SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 readonly REPO_ROOT=$(dirname "${SCRIPT_DIR}")
 
 PREFIX=${PREFIX:?PREFIX is required}
-STAGE_DIR=${STAGE_DIR:-/staging}
 SRC_ROOT=${SRC_ROOT:-/sources}
 BUILD_ROOT=${BUILD_ROOT:-/build}
-PREFIX_DIR="${STAGE_DIR}${PREFIX}"
+PREFIX_DIR="${PREFIX}"
 
 case "${PREFIX}" in
   /*) ;;
@@ -77,7 +76,7 @@ component_build_system() {
 }
 
 refresh_build_env() {
-  PREFIX_DIR="${STAGE_DIR}${PREFIX}"
+  PREFIX_DIR="${PREFIX}"
   export PATH="${PREFIX_DIR}/bin:${PATH}"
   export LD_LIBRARY_PATH="${PREFIX_DIR}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
   export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
@@ -86,7 +85,7 @@ refresh_build_env() {
 }
 
 prepare_dirs() {
-  mkdir -p "${STAGE_DIR}" "${SRC_ROOT}" "${BUILD_ROOT}" "${PREFIX_DIR}"
+  mkdir -p "${SRC_ROOT}" "${BUILD_ROOT}" "${PREFIX_DIR}"
 }
 
 fetch_component() {
@@ -182,7 +181,7 @@ build_cmake_component() {
   cmake --build "${build_dir}" --parallel
 
   log "installing ${component}"
-  DESTDIR="${STAGE_DIR}" cmake --install "${build_dir}"
+  cmake --install "${build_dir}"
 }
 
 build_meson_component() {
@@ -225,7 +224,7 @@ build_meson_component() {
   meson compile -C "${build_dir}"
 
   log "installing ${component}"
-  DESTDIR="${STAGE_DIR}" meson install -C "${build_dir}" --no-rebuild
+  meson install -C "${build_dir}" --no-rebuild
 }
 
 build_component() {
