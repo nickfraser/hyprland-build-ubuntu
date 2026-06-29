@@ -122,13 +122,13 @@ apply_component_patches() {
   local -a patch_files=()
   local patch_file
 
-  [[ -d "${patch_dir}" ]] || return
+  [[ -d "${patch_dir}" ]] || return 0
 
   shopt -s nullglob
   patch_files=("${patch_dir}"/*.patch)
   shopt -u nullglob
 
-  [[ ${#patch_files[@]} -gt 0 ]] || return
+  [[ ${#patch_files[@]} -gt 0 ]] || return 0
 
   for patch_file in "${patch_files[@]}"; do
     log "applying patch $(basename "${patch_file}") to ${component}"
