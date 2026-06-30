@@ -136,7 +136,9 @@ cmake_args_common() {
     -DCMAKE_INSTALL_LIBEXECDIR=libexec \
     -DCMAKE_INSTALL_INCLUDEDIR=include \
     -DCMAKE_INSTALL_DATAROOTDIR=share \
-    -DCMAKE_INSTALL_SYSCONFDIR=etc
+    -DCMAKE_INSTALL_SYSCONFDIR=etc \
+    "-DCMAKE_BUILD_RPATH=${PREFIX}/lib" \
+    "-DCMAKE_INSTALL_RPATH=${PREFIX}/lib"
 }
 
 cmake_component_args() {
