@@ -45,7 +45,6 @@ PREFIX_ROOT="${ARTIFACT_ROOT}/${PREFIX#/}"
 
 required_files=(
   "${PREFIX_ROOT}/bin/Hyprland"
-  "${PREFIX_ROOT}/bin/start-hyprland"
   "${PREFIX_ROOT}/bin/hyprland-session"
   "${PREFIX_ROOT}/bin/hypridle"
   "${PREFIX_ROOT}/bin/hyprpaper"

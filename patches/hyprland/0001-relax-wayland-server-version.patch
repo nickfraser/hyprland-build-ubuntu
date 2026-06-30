@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c4ad4ca..aac43a4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -128,7 +128,7 @@ pkg_check_modules(
+   IMPORTED_TARGET
+   xkbcommon
+   uuid
+-  wayland-server>=1.22.90
++  wayland-server>=1.22.0
+   wayland-protocols>=1.41
+   cairo
+   pango

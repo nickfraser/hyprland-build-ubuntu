@@ -36,8 +36,6 @@ component_repo() {
     hyprland-protocols) printf '%s\n' 'https://github.com/hyprwm/hyprland-protocols.git' ;;
     libinput) printf '%s\n' 'https://gitlab.freedesktop.org/libinput/libinput.git' ;;
     aquamarine) printf '%s\n' 'https://github.com/hyprwm/aquamarine.git' ;;
-    hyprwire) printf '%s\n' 'https://github.com/hyprwm/hyprwire.git' ;;
-    hyprtoolkit) printf '%s\n' 'https://github.com/hyprwm/hyprtoolkit.git' ;;
     hyprland) printf '%s\n' 'https://github.com/hyprwm/Hyprland.git' ;;
     xdg-desktop-portal-hyprland) printf '%s\n' 'https://github.com/hyprwm/xdg-desktop-portal-hyprland.git' ;;
     hyprlock) printf '%s\n' 'https://github.com/hyprwm/hyprlock.git' ;;
@@ -58,8 +56,6 @@ component_ref() {
     hyprland-protocols) printf '%s\n' "${HYPRLAND_PROTOCOLS_REF}" ;;
     libinput) printf '%s\n' "${LIBINPUT_REF}" ;;
     aquamarine) printf '%s\n' "${AQUAMARINE_REF}" ;;
-    hyprwire) printf '%s\n' "${HYPRWIRE_REF}" ;;
-    hyprtoolkit) printf '%s\n' "${HYPRTOOLKIT_REF}" ;;
     hyprland) printf '%s\n' "${HYPRLAND_REF}" ;;
     xdg-desktop-portal-hyprland) printf '%s\n' "${XDG_DESKTOP_PORTAL_HYPRLAND_REF}" ;;
     hyprlock) printf '%s\n' "${HYPRLOCK_REF}" ;;
@@ -145,9 +141,6 @@ cmake_args_common() {
 
 cmake_component_args() {
   case "$1" in
-    hyprland)
-      printf '%s\n' -DNO_HYPRPM=ON -DNO_UWSM=ON
-      ;;
     aquamarine)
       printf '%s\n' -DBUILD_TESTING=OFF
       ;;

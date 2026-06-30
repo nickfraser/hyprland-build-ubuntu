@@ -21,7 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc-14 \
     git \
     hwdata \
-    libabsl-dev \
     libcairo2-dev \
     libdbusmenu-gtk3-dev \
     libdisplay-info-dev \

@@ -63,7 +63,7 @@ EOF
   cat >"${bin_dir}/hyprland-session" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-exec "${PREFIX}/bin/hyprland-env" "${PREFIX}/bin/start-hyprland" "\$@"
+exec "${PREFIX}/bin/hyprland-env" "${PREFIX}/bin/Hyprland" "\$@"
 EOF
 
   cat >"${bin_dir}/hypridle-session" <<EOF
