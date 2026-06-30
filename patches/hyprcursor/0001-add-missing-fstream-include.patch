@@ -1,0 +1,12 @@
+diff --git a/hyprcursor-util/src/main.cpp b/hyprcursor-util/src/main.cpp
+index b6235cb..4bdfca4 100644
+--- a/hyprcursor-util/src/main.cpp
++++ b/hyprcursor-util/src/main.cpp
+@@ -10,6 +10,7 @@
+ #include "internalSharedTypes.hpp"
+ #include "manifest.hpp"
+ #include "meta.hpp"
++#include <fstream>
+ 
+ #ifndef ZIP_LENGTH_TO_END
+ #define ZIP_LENGTH_TO_END -1
