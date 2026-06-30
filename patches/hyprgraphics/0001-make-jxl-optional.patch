@@ -1,0 +1,62 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 80944d7..1b8a61f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -47,10 +47,21 @@ pkg_check_modules(
+   hyprutils
+   libjpeg
+   libwebp
++  libmagic)
++
++pkg_check_modules(
++  JXL
++  IMPORTED_TARGET
+   libjxl
+   libjxl_cms
+-  libjxl_threads
+-  libmagic)
++  libjxl_threads)
++
++if(NOT JXL_FOUND)
++  file(GLOB_RECURSE JPEGXLFILES CONFIGURE_DEPENDS "src/*JpegXL.cpp")
++  list(REMOVE_ITEM SRCFILES ${JPEGXLFILES})
++else()
++  add_compile_definitions(JXL_FOUND)
++endif()
+ 
+ add_library(hyprgraphics SHARED ${SRCFILES})
+ target_include_directories(
+@@ -60,6 +71,9 @@ target_include_directories(
+ set_target_properties(hyprgraphics PROPERTIES VERSION ${HYPRGRAPHICS_VERSION}
+                                               SOVERSION 0)
+ target_link_libraries(hyprgraphics PkgConfig::deps)
++if(JXL_FOUND)
++  target_link_libraries(hyprgraphics PkgConfig::JXL)
++endif()
+ 
+ # tests
+ add_custom_target(tests)
+diff --git a/src/image/Image.cpp b/src/image/Image.cpp
+index 6ba88f5..88dad5b 100644
+--- a/src/image/Image.cpp
++++ b/src/image/Image.cpp
+@@ -1,7 +1,9 @@
+ #include <hyprgraphics/image/Image.hpp>
+ #include "formats/Bmp.hpp"
+ #include "formats/Jpeg.hpp"
++#ifdef JXL_FOUND
+ #include "formats/JpegXL.hpp"
++#endif
+ #include "formats/Webp.hpp"
+ #include <magic.h>
+ #include <format>
+@@ -27,7 +29,9 @@ Hyprgraphics::CImage::CImage(const std::string& path) : filepath(path) {
+         CAIROSURFACE = WEBP::createSurfaceFromWEBP(path);
+         mime = "image/webp";
+     } else if (path.find(".jxl") == len - 4 || path.find(".JXL") == len - 4) {
++#ifdef JXL_FOUND
+         CAIROSURFACE = JXL::createSurfaceFromJXL(path);
++#endif
+         mime = "image/jxl";
+     } else {
+         // magic is slow, so only use it when no recognized extension is found
