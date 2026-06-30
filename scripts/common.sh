@@ -70,7 +70,7 @@ component_ref() {
 
 component_build_system() {
   case "$1" in
-    waybar) printf '%s\n' 'meson' ;;
+    waybar|hyprland-protocols) printf '%s\n' 'meson' ;;
     *) printf '%s\n' 'cmake' ;;
   esac
 }
@@ -103,15 +103,7 @@ fetch_component() {
 
   log "fetching ${component} at ${ref}"
   rm -rf "${dest}"
-  git init "${dest}" >/dev/null
-  git -C "${dest}" remote add origin "${repo}"
-
-  if ! git -C "${dest}" fetch --depth 1 origin "${ref}" >/dev/null 2>&1; then
-    git -C "${dest}" fetch origin "${ref}" >/dev/null
-  fi
-
-  git -C "${dest}" checkout --detach FETCH_HEAD >/dev/null
-  git -C "${dest}" submodule update --init --recursive >/dev/null 2>&1 || true
+  git clone --depth 1 --branch "${ref}" --recursive "${repo}" "${dest}" >/dev/null 2>&1
 }
 
 apply_component_patches() {
@@ -184,12 +176,44 @@ build_cmake_component() {
   cmake --install "${build_dir}"
 }
 
+meson_component_args() {
+  case "$1" in
+    waybar)
+      printf '%s\n' \
+        -Ddbusmenu-gtk=enabled \
+        -Dlibevdev=disabled \
+        -Dlibinput=disabled \
+        -Dlibnl=disabled \
+        -Dlibudev=disabled \
+        -Dgps=disabled \
+        -Djack=disabled \
+        -Dlogind=disabled \
+        -Dman-pages=disabled \
+        -Dmpd=disabled \
+        -Dmpris=disabled \
+        -Dniri=false \
+        -Dpipewire=disabled \
+        -Dpulseaudio=disabled \
+        -Drfkill=disabled \
+        -Dsndio=disabled \
+        -Dtests=disabled \
+        -Dupower_glib=disabled \
+        -Dwireplumber=disabled
+      ;;
+    *)
+      ;;
+  esac
+}
+
 build_meson_component() {
   local component=$1
   local source_dir="${SRC_ROOT}/${component}"
   local build_dir="${BUILD_ROOT}/${component}"
+  local -a args=()
 
   rm -rf "${build_dir}"
+
+  mapfile -t args < <(meson_component_args "${component}")
 
   log "configuring ${component}"
   meson setup "${build_dir}" "${source_dir}" \
@@ -200,25 +224,7 @@ build_meson_component() {
     --includedir=include \
     --datadir=share \
     --sysconfdir=etc \
-    -Ddbusmenu-gtk=enabled \
-    -Dlibevdev=disabled \
-    -Dlibinput=disabled \
-    -Dlibnl=disabled \
-    -Dlibudev=disabled \
-    -Dgps=disabled \
-    -Djack=disabled \
-    -Dlogind=disabled \
-    -Dman-pages=disabled \
-    -Dmpd=disabled \
-    -Dmpris=disabled \
-    -Dniri=false \
-    -Dpipewire=disabled \
-    -Dpulseaudio=disabled \
-    -Drfkill=disabled \
-    -Dsndio=disabled \
-    -Dtests=disabled \
-    -Dupower_glib=disabled \
-    -Dwireplumber=disabled
+    "${args[@]}"
 
   log "building ${component}"
   meson compile -C "${build_dir}"
