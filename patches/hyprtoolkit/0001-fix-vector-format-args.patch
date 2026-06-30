@@ -1,0 +1,30 @@
+diff --git a/src/system/Icons.cpp b/src/system/Icons.cpp
+index e5f1ed6..c3a593c 100644
+--- a/src/system/Icons.cpp
++++ b/src/system/Icons.cpp
+@@ -6,6 +6,7 @@
+ #include <cstdlib>
+ #include <filesystem>
+ #include <fstream>
++#include <numeric>
+ 
+ #include <hyprutils/string/String.hpp>
+ #include <hyprutils/string/ConstVarList.hpp>
+@@ -99,7 +100,7 @@ static std::optional<std::vector<std::string>> findAnyTheme() {
+             // try to find it
+             auto themeDir = getThemeDir(iconTheme);
+             if (themeDir && !themeDir->empty()) {
+-                g_logger->log(HT_LOG_TRACE, "CSystemIconFactory: Found {} as default fallback", themeDir.value());
++                g_logger->log(HT_LOG_TRACE, "CSystemIconFactory: Found {} as default fallback", std::accumulate(themeDir->begin(), themeDir->end(), std::string{}, [](const std::string& a, const std::string& b) { return a.empty() ? b : a + ", " + b; }));
+                 return themeDir;
+             }
+ 
+@@ -214,7 +215,7 @@ void CSystemIconFactory::parseTheme(const std::string& themeDir) {
+ 
+             auto inheritTheme = getThemeDir(trim(std::string{inheritName}));
+             if (inheritTheme) {
+-                g_logger->log(HT_LOG_TRACE, "CSystemIconFactory: parsing inherited theme {}", *inheritTheme);
++                g_logger->log(HT_LOG_TRACE, "CSystemIconFactory: parsing inherited theme {}", std::accumulate(inheritTheme->begin(), inheritTheme->end(), std::string{}, [](const std::string& a, const std::string& b) { return a.empty() ? b : a + ", " + b; }));
+                 parseThemes(*inheritTheme);
+             } else
+                 g_logger->log(HT_LOG_WARNING, "CSystemIconFactory: inherited theme {} not found", std::string{inheritName});

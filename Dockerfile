@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfmt-dev \
     libgbm-dev \
     glslang-dev \
+    glslang-tools \
     libgles2-mesa-dev \
     libgtk-layer-shell-dev \
     libgtkmm-3.0-dev \
@@ -86,6 +87,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xutils-dev \
     wayland-protocols && \
     rm -rf /var/lib/apt/lists/*
+
+RUN printf '%s\n' \
+    'prefix=/usr' \
+    'includedir=${prefix}/include/iniparser' \
+    'libdir=${prefix}/lib/x86_64-linux-gnu' \
+    '' \
+    'Name: iniparser' \
+    'Description: iniparser library for parsing INI files' \
+    'Version: 4.2.1' \
+    'Libs: -L${libdir} -liniparser' \
+    'Cflags: -I${includedir}' \
+    > /usr/share/pkgconfig/iniparser.pc
+
+RUN curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
+    | tar xz -C /opt && \
+    ln -sf /opt/cmake-3.31.6-linux-x86_64/bin/cmake /usr/local/bin/cmake && \
+    ln -sf /opt/cmake-3.31.6-linux-x86_64/bin/ctest /usr/local/bin/ctest
 
 WORKDIR /workspace
 COPY . /workspace

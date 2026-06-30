@@ -34,6 +34,7 @@ component_repo() {
     hyprgraphics) printf '%s\n' 'https://github.com/hyprwm/hyprgraphics.git' ;;
     hyprwayland-scanner) printf '%s\n' 'https://github.com/hyprwm/hyprwayland-scanner.git' ;;
     hyprland-protocols) printf '%s\n' 'https://github.com/hyprwm/hyprland-protocols.git' ;;
+    libinput) printf '%s\n' 'https://gitlab.freedesktop.org/libinput/libinput.git' ;;
     aquamarine) printf '%s\n' 'https://github.com/hyprwm/aquamarine.git' ;;
     hyprwire) printf '%s\n' 'https://github.com/hyprwm/hyprwire.git' ;;
     hyprtoolkit) printf '%s\n' 'https://github.com/hyprwm/hyprtoolkit.git' ;;
@@ -55,6 +56,7 @@ component_ref() {
     hyprgraphics) printf '%s\n' "${HYPRGRAPHICS_REF}" ;;
     hyprwayland-scanner) printf '%s\n' "${HYPRWAYLAND_SCANNER_REF}" ;;
     hyprland-protocols) printf '%s\n' "${HYPRLAND_PROTOCOLS_REF}" ;;
+    libinput) printf '%s\n' "${LIBINPUT_REF}" ;;
     aquamarine) printf '%s\n' "${AQUAMARINE_REF}" ;;
     hyprwire) printf '%s\n' "${HYPRWIRE_REF}" ;;
     hyprtoolkit) printf '%s\n' "${HYPRTOOLKIT_REF}" ;;
@@ -70,7 +72,7 @@ component_ref() {
 
 component_build_system() {
   case "$1" in
-    waybar|hyprland-protocols) printf '%s\n' 'meson' ;;
+    waybar|hyprland-protocols|libinput) printf '%s\n' 'meson' ;;
     *) printf '%s\n' 'cmake' ;;
   esac
 }
@@ -79,6 +81,7 @@ refresh_build_env() {
   PREFIX_DIR="${PREFIX}"
   export PATH="${PREFIX_DIR}/bin:${PATH}"
   export LD_LIBRARY_PATH="${PREFIX_DIR}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+  export LIBRARY_PATH="${PREFIX_DIR}/lib${LIBRARY_PATH:+:${LIBRARY_PATH}}"
   export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
   export CMAKE_PREFIX_PATH="${PREFIX_DIR}${CMAKE_PREFIX_PATH:+:${CMAKE_PREFIX_PATH}}"
   export XDG_DATA_DIRS="${PREFIX_DIR}/share${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
@@ -145,6 +148,9 @@ cmake_component_args() {
     hyprland)
       printf '%s\n' -DNO_HYPRPM=ON -DNO_UWSM=ON
       ;;
+    aquamarine)
+      printf '%s\n' -DBUILD_TESTING=OFF
+      ;;
     xdg-desktop-portal-hyprland)
       printf '%s\n' -DSYSTEMD_SERVICES=ON
       ;;
@@ -199,6 +205,12 @@ meson_component_args() {
         -Dtests=disabled \
         -Dupower_glib=disabled \
         -Dwireplumber=disabled
+      ;;
+    libinput)
+      printf '%s\n' \
+        -Ddebug-gui=false \
+        -Dtests=false \
+        -Ddocumentation=false
       ;;
     *)
       ;;
