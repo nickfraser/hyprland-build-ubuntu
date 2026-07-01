@@ -70,6 +70,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxcb1-dev \
     libxcursor-dev \
     libxkbcommon-dev \
+    libxkbregistry-dev \
     libzip-dev \
     lld \
     libtool \
