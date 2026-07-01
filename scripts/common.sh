@@ -202,7 +202,7 @@ meson_component_args() {
         -Dlibevdev=disabled \
         -Dlibinput=disabled \
         -Dlibnl=disabled \
-        -Dlibudev=disabled \
+        -Dlibudev=enabled \
         -Dgps=disabled \
         -Djack=disabled \
         -Dlogind=disabled \
