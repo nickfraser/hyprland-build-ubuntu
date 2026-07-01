@@ -80,6 +80,8 @@ The build also adds wrapper entrypoints under `${PREFIX}/bin/` so session-scoped
 - `hyprpaper-session`
 - `xdg-desktop-portal-hyprland-session`
 
+The main session wrapper launches `${PREFIX}/bin/Hyprland` directly.
+
 ## Install On Target Machine
 
 Extract or copy the built prefix tree onto the target machine so that the files land at the same prefix used during the build.
@@ -96,6 +98,8 @@ Register the display-manager session and helper service files:
 ```bash
 scripts/register-session.sh --prefix /opt/hyprland
 ```
+
+`register-session.sh` now fails if required files are missing from the artifact, including the Hyprland session entry, portal registration files, and the `hyprlock` PAM file.
 
 If you want the shipped user services enabled globally:
 
@@ -119,11 +123,15 @@ ${PREFIX}/share/hyprland-build-ubuntu/examples/
 
 The example set includes:
 
-- `hypr/hyprland.conf`
+- `hypr/hyprland.conf`: default/core-safe example
+- `hypr/hyprland-core.conf`
+- `hypr/hyprland-desktop.conf`
 - `hypr/hypridle.conf`
 - `hypr/hyprpaper.conf`
 - `waybar/config.jsonc`
 - `waybar/style.css`
+
+Use the desktop example only with the `desktop` profile, because it autostarts `waybar`. The `core` profile does not build `waybar`.
 
 ## Notes
 
@@ -141,5 +149,6 @@ You can also run it yourself:
 ```bash
 scripts/verify-artifact.sh \
   --artifact-root dist/desktop-opt \
-  --prefix /opt/hyprland
+  --prefix /opt/hyprland \
+  --profile-file profiles/desktop.list
 ```

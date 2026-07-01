@@ -1,0 +1,10 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c2dfd6c..f250478 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -116,4 +116,4 @@ protocol("unstable/linux-dmabuf/linux-dmabuf-unstable-v1.xml"
+ install(TARGETS hyprlock)
+ 
+ install(FILES ${CMAKE_SOURCE_DIR}/pam/hyprlock
+-        DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/pam.d)
++        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/pam.d)

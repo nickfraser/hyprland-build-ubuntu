@@ -86,4 +86,4 @@ trap 'docker rm -f "${container_id}" >/dev/null 2>&1 || true' EXIT
 
 docker cp "${container_id}:/out/." "${OUTPUT_DIR}/"
 
-"$(dirname "$(readlink -f "$0")")/verify-artifact.sh" --artifact-root "${OUTPUT_DIR}" --prefix "${PREFIX}"
+"$(dirname "$(readlink -f "$0")")/verify-artifact.sh" --artifact-root "${OUTPUT_DIR}" --prefix "${PREFIX}" --profile-file "${PROFILE}"

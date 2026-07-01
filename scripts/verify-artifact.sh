@@ -4,10 +4,11 @@ set -euo pipefail
 
 ARTIFACT_ROOT=
 PREFIX=
+PROFILE_FILE=
 
 usage() {
   cat <<EOF
-Usage: scripts/verify-artifact.sh --artifact-root <dir> --prefix <prefix>
+Usage: scripts/verify-artifact.sh --artifact-root <dir> --prefix <prefix> [--profile-file <file>]
 EOF
 }
 
@@ -19,6 +20,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --prefix)
       PREFIX=$2
+      shift 2
+      ;;
+    --profile-file)
+      PROFILE_FILE=$2
       shift 2
       ;;
     -h|--help)
@@ -43,6 +48,10 @@ esac
 
 PREFIX_ROOT="${ARTIFACT_ROOT}/${PREFIX#/}"
 
+if [[ -z "${PROFILE_FILE}" ]] && [[ -f "${ARTIFACT_ROOT}/build-metadata/selected-profile.list" ]]; then
+  PROFILE_FILE="${ARTIFACT_ROOT}/build-metadata/selected-profile.list"
+fi
+
 required_files=(
   "${PREFIX_ROOT}/bin/Hyprland"
   "${PREFIX_ROOT}/bin/hyprland-session"
@@ -56,6 +65,10 @@ required_files=(
   "${PREFIX_ROOT}/etc/pam.d/hyprlock"
   "${ARTIFACT_ROOT}/build-metadata/build-info.txt"
 )
+
+if [[ -n "${PROFILE_FILE}" ]] && [[ -f "${PROFILE_FILE}" ]] && grep -qx 'waybar' "${PROFILE_FILE}"; then
+  required_files+=("${PREFIX_ROOT}/bin/waybar")
+fi
 
 missing=0
 for path in "${required_files[@]}"; do
