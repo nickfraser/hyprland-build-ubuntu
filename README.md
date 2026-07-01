@@ -152,3 +152,47 @@ scripts/verify-artifact.sh \
   --prefix /opt/hyprland \
   --profile-file profiles/desktop.list
 ```
+
+## Patches and Compatibility
+
+The Hyprland ecosystem evolves quickly and targets rolling-release distributions. To build on Ubuntu 24.04 LTS, several upstream packages had to be pinned to older versions or patched. This section documents those choices for future maintainers.
+
+### Version Pins
+
+All component versions are pinned in `versions/latest.env`. Key decisions:
+
+- **Hyprland v0.48.0**: chosen because it was the newest release whose version floors for `xkbcommon`, `wayland-protocols`, and `libinput` are compatible with Ubuntu 24.04 system packages. Newer releases (v0.54.0+) require `xkbcommon>=1.11.0`, `wayland-protocols>=1.47`, and `libinput>=1.28`, none of which are available on Ubuntu 24.04.
+- **hyprutils v0.5.2**: satisfies `aquamarine v0.8.0`'s `hyprutils>=0.5.2` requirement while staying on the older C++23 codebase that avoids `std::expected`, `<print>`, and `native_handle` issues.
+- **hyprlang v0.6.0**: compatible with `hyprutils v0.5.2` (requires `>=0.1.1`).
+- **hyprcursor v0.1.10**: compatible C++23 codebase with no problematic C++23/26 features.
+- **hyprgraphics v0.1.1**: uses C++26 but only `std::expected` (supported by GCC 14), avoiding `<print>` and `native_handle` issues present in newer versions.
+- **aquamarine v0.8.0**: requires `libinput>=1.26.0`, satisfied by building libinput from source.
+- **xdg-desktop-portal-hyprland v1.3.3**: newest release before the `libpipewire-0.3>=1.1.82` floor was introduced in v1.3.4. Ubuntu 24.04 has PipeWire 1.0.5.
+- **hyprlock v0.4.1**: newest release that does not require `sdbus-c++>=2.0.0`. Ubuntu 24.04 has `sdbus-c++ 1.4.0`.
+- **hypridle v0.1.3**: newest release whose source code uses the older `sdbus-c++ 1.x` API (`createProxy`, `registerMethod`). v0.1.4+ switched to `sdbus::ServiceName`, `addVTable`, `processPendingEvent` which require sdbus-c++ 2.x.
+- **hyprwayland-scanner v0.4.4**: satisfies `hyprlock v0.4.1`'s `find_package(hyprwayland-scanner 0.4.4 REQUIRED)` and all other components' lower requirements.
+
+### Source-Built Dependencies
+
+- **libinput 1.27.0**: built from source via Meson because Ubuntu 24.04 ships 1.25.0 and `aquamarine v0.8.0` requires `>=1.26.0`. Provides `libinput_device_get_id_bustype()` needed by aquamarine.
+- **xcb-errors**: bootstrapped from the freedesktop unofficial mirror because Ubuntu 24.04 does not package `libxcb-errors-dev`. Built via autotools and installed into the prefix.
+- **CMake 3.31.6**: downloaded as a prebuilt binary tarball because Hyprland requires `cmake>=3.30` and Ubuntu 24.04 ships 3.28.3.
+
+### Docker Build Workarounds
+
+- System `libinput.pc` and `libinput.so` are renamed (to `.bak`) during the Docker build so that pkg-config and CMake's `find_library` only see the prefix-local version (1.27.0), preventing linker resolution to the system 1.25.0.
+- `iniparser.pc` is manually created in `/usr/share/pkgconfig/` because Ubuntu 24.04's `libiniparser-dev` does not ship a pkg-config file.
+- `xdg-desktop-portal-hyprland` is compiled with **Clang** (while the rest of the stack uses GCC 14) because GCC 14 rejects PipeWire/SPA header designated-initializer syntax in C++ mode.
+- `CMAKE_BUILD_RPATH` and `CMAKE_INSTALL_RPATH` are set to `${PREFIX}/lib` for all CMake components so the linker finds prefix-local `libinput.so` at both link time and runtime.
+- `LDFLAGS` includes `-Wl,-rpath-link,${PREFIX}/lib` for transitive shared library resolution during linking.
+
+### Local Patches
+
+| Patch | Component | Purpose |
+|---|---|---|
+| `0001-relax-wayland-server-version.patch` | hyprland | Relaxes `wayland-server>=1.22.90` to `>=1.22.0` (Ubuntu 24.04 has 1.22.0) |
+| `0002-guard-max-buffer-size.patch` | hyprland | Guards `wl_display_set_default_max_buffer_size()` call behind a wayland version check (API added in 1.22.91, not in 1.22.0) |
+| `0001-guard-test-executables.patch` | aquamarine | Wraps test executables in `if(BUILD_TESTING)` so they are not built by default (avoids link failure against system libinput) |
+| `0001-add-missing-fstream-include.patch` | hyprcursor | Adds `#include <fstream>` to `hyprcursor-util/src/main.cpp` (missing in upstream, GCC 14 is stricter about transitive includes) |
+| `0001-make-jxl-optional.patch` | hyprgraphics | Makes JXL dependencies optional because Ubuntu 24.04's `libjxl-dev` lacks `libjxl_cms.pc` |
+| `0001-install-pam-under-prefix.patch` | hyprlock | Installs PAM file under relative `SYSCONFDIR/pam.d` instead of absolute `FULL_SYSCONFDIR/pam.d` so it lands inside the prefix tree |

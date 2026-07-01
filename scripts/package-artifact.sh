@@ -38,3 +38,9 @@ done
 
 mkdir -p "$(dirname "${OUTPUT}")"
 tar -C "${ARTIFACT_ROOT}" -czf "${OUTPUT}" .
+
+# Generate a checksum alongside the tarball so the target machine can verify integrity
+sha256sum "${OUTPUT}" > "${OUTPUT}.sha256"
+log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*"; }
+log "wrote ${OUTPUT}"
+log "wrote ${OUTPUT}.sha256"

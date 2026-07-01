@@ -18,7 +18,7 @@ install_xcb_errors() {
   local src_dir="${SRC_ROOT}/xcb-util-errors"
 
   if [[ -f "${PREFIX_DIR}/lib/pkgconfig/xcb-errors.pc" ]]; then
-    return
+    return 0
   fi
 
   log "bootstrapping xcb-errors for Ubuntu 24.04"

@@ -35,6 +35,9 @@ remove_one() {
   fi
 }
 
+# Disable user units BEFORE removing service files so systemctl can still find them
+sudo systemctl --global disable hypridle.service hyprpaper.service xdg-desktop-portal-hyprland.service || true
+
 remove_one "${SYSTEM_PREFIX}/share/wayland-sessions/hyprland.desktop"
 remove_one "${SYSTEM_PREFIX}/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hyprland.service"
 remove_one "${SYSTEM_PREFIX}/share/xdg-desktop-portal/portals/hyprland.portal"
@@ -44,5 +47,5 @@ remove_one "${SYSTEM_PREFIX}/lib/systemd/user/hypridle.service"
 remove_one "${SYSTEM_PREFIX}/lib/systemd/user/hyprpaper.service"
 remove_one "${SYSTEM_PREFIX}/lib/systemd/user/xdg-desktop-portal-hyprland.service"
 
-sudo systemctl --global disable hypridle.service hyprpaper.service xdg-desktop-portal-hyprland.service || true
+sudo systemctl --global daemon-reload || true
 sudo systemctl daemon-reload || true
