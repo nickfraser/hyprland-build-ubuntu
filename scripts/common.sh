@@ -73,6 +73,17 @@ component_build_system() {
   esac
 }
 
+component_compiler_env() {
+  case "$1" in
+    xdg-desktop-portal-hyprland)
+      printf '%s\n' 'CC=clang' 'CXX=clang++'
+      ;;
+    *)
+      printf '%s\n' "CC=${CC:-cc}" "CXX=${CXX:-c++}"
+      ;;
+  esac
+}
+
 refresh_build_env() {
   PREFIX_DIR="${PREFIX}"
   export PATH="${PREFIX_DIR}/bin:${PATH}"
@@ -163,22 +174,24 @@ build_cmake_component() {
   local source_dir="${SRC_ROOT}/${component}"
   local build_dir="${BUILD_ROOT}/${component}"
   local -a args=()
+  local -a env_args=()
 
   rm -rf "${build_dir}"
   mkdir -p "${build_dir}"
 
   mapfile -t args < <(cmake_args_common)
   mapfile -t component_args < <(cmake_component_args "${component}")
+  mapfile -t env_args < <(component_compiler_env "${component}")
   args+=("${component_args[@]}")
 
   log "configuring ${component}"
-  cmake -S "${source_dir}" -B "${build_dir}" "${args[@]}"
+  env "${env_args[@]}" cmake -S "${source_dir}" -B "${build_dir}" "${args[@]}"
 
   log "building ${component}"
-  cmake --build "${build_dir}" --parallel
+  env "${env_args[@]}" cmake --build "${build_dir}" --parallel
 
   log "installing ${component}"
-  cmake --install "${build_dir}"
+  env "${env_args[@]}" cmake --install "${build_dir}"
 }
 
 meson_component_args() {

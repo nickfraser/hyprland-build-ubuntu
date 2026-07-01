@@ -80,6 +80,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     python-is-python3 \
     python3 \
+    qt6-base-dev \
     scdoc \
     uuid-dev \
     xcb-proto \
