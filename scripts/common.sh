@@ -78,7 +78,10 @@ refresh_build_env() {
   export PATH="${PREFIX_DIR}/bin:${PATH}"
   export LD_LIBRARY_PATH="${PREFIX_DIR}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
   export LIBRARY_PATH="${PREFIX_DIR}/lib${LIBRARY_PATH:+:${LIBRARY_PATH}}"
-  export LDFLAGS="-Wl,-rpath-link,${PREFIX_DIR}/lib${LDFLAGS:+ ${LDFLAGS}}"
+  case "${LDFLAGS:-}" in
+    *-rpath-link,${PREFIX_DIR}/lib*) ;;
+    *) export LDFLAGS="-Wl,-rpath-link,${PREFIX_DIR}/lib${LDFLAGS:+ ${LDFLAGS}}" ;;
+  esac
   export PKG_CONFIG_PATH="${PREFIX_DIR}/lib/pkgconfig:${PREFIX_DIR}/share/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
   export CMAKE_PREFIX_PATH="${PREFIX_DIR}${CMAKE_PREFIX_PATH:+:${CMAKE_PREFIX_PATH}}"
   export XDG_DATA_DIRS="${PREFIX_DIR}/share${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"

@@ -99,6 +99,12 @@ RUN printf '%s\n' \
     'Cflags: -I${includedir}' \
     > /usr/share/pkgconfig/iniparser.pc
 
+RUN mv /usr/lib/x86_64-linux-gnu/pkgconfig/libinput.pc \
+    /usr/lib/x86_64-linux-gnu/pkgconfig/libinput.pc.bak || true
+
+RUN mv /usr/lib/x86_64-linux-gnu/libinput.so \
+    /usr/lib/x86_64-linux-gnu/libinput.so.bak || true
+
 RUN curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
     | tar xz -C /opt && \
     ln -sf /opt/cmake-3.31.6-linux-x86_64/bin/cmake /usr/local/bin/cmake && \
