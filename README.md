@@ -25,13 +25,20 @@ Use an absolute path for the prefix. For a user-scoped install, build for someth
 - `scripts/register-session.sh`: system-level session and service registration
 - `scripts/unregister-session.sh`: remove registration files
 - `scripts/verify-artifact.sh`: artifact sanity check
+- `scripts/check-runtime-deps.sh`: verify target-side runtime libraries and services
+- `scripts/install-runtime-deps-ubuntu.sh`: install runtime packages on Ubuntu 24.04
 - `examples/`: sample Hyprland and Waybar config files
 
 ## Requirements
 
-- Docker on the build machine
+Build machine:
+- Docker
 - enough disk space for the container build and extracted artifact
-- sudo on the target machine if you want GDM session registration
+
+Target machine:
+- Ubuntu 24.04
+- `sudo` if you want GDM session registration
+- Runtime packages — see "Target Machine Runtime Dependencies" below
 
 ## Build
 
@@ -111,6 +118,49 @@ To remove those registration files later:
 
 ```bash
 scripts/unregister-session.sh
+```
+
+## Target Machine Runtime Dependencies
+
+The `register-session.sh` script does **not** install runtime packages. The build bundles its own ecosystem libraries (e.g., `libaquamarine.so`, `libhyprutils.so`, `libinput.so`) under `${PREFIX}/lib/`, but the shipped binaries also dynamically link against system libraries that must already exist on the target machine.
+
+Check whether the target machine has all required runtime dependencies:
+
+```bash
+scripts/check-runtime-deps.sh --prefix /opt/hyprland
+```
+
+This runs `ldd` over every bundled ELF binary and reports any missing shared libraries. It also checks for required system commands like `xdg-desktop-portal` and PAM support.
+
+If any dependencies are missing, install them on Ubuntu 24.04:
+
+```bash
+scripts/install-runtime-deps-ubuntu.sh
+```
+
+Or preview the packages without installing:
+
+```bash
+scripts/install-runtime-deps-ubuntu.sh --dry-run
+```
+
+Key runtime requirements:
+
+- Graphics/display: `libdrm2`, `libgbm1`, `libegl1`, `libgl1`, `libgles2`
+- Wayland: `libwayland-client0`, `libwayland-server0`, `libxkbcommon0`
+- Input: `libinput10`, `libseat1`, `libwacom9`, `libmtdev1t64`
+- Portal/screencast: `libpipewire-0.3-0t64`, `libspa-0.2-modules`, `xdg-desktop-portal`, `xdg-desktop-portal-gtk`
+- Qt6 (for hyprland-share-picker): `libqt6widgets6t64`, `libqt6gui6t64`, `libqt6core6t64`
+- D-Bus: `dbus`, `libsdbus-c++1`
+- PAM: `libpam0g`, `libpam-runtime`
+- GTK (for waybar): `libgtkmm-3.0-1t64`, `libgtk-layer-shell0`, `libdbusmenu-gtk3-4`
+- Image: `libcairo2`, `libpango-1.0-0`, `librsvg2-2`, `libjpeg-turbo8`, `libwebp7`, `libpng16-16t64`
+- Misc: `libfmt9`, `libspdlog1.12`, `libmagic1t64`, `libsystemd0`, `libudev1`
+
+The build also generates a `build-metadata/runtime-deps.txt` manifest listing all shared library basenames that the bundled binaries depend on. This can be used for offline dependency auditing:
+
+```bash
+scripts/check-runtime-deps.sh --prefix /opt/hyprland --manifest dist/desktop-opt/build-metadata/runtime-deps.txt
 ```
 
 ## User Configuration

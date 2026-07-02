@@ -190,6 +190,26 @@ write_build_metadata() {
   } >"${metadata_dir}/build-info.txt"
 }
 
+generate_runtime_deps_manifest() {
+  local metadata_dir="${OUT_ROOT}/build-metadata"
+  local manifest="${metadata_dir}/runtime-deps.txt"
+  local bin lib
+
+  : >"${manifest}"
+
+  for bin in "${PREFIX}/bin"/* "${PREFIX}/libexec"/*; do
+    [[ -f "${bin}" ]] || continue
+    file -b "${bin}" 2>/dev/null | grep -q 'ELF' || continue
+    ldd "${bin}" 2>/dev/null | while IFS= read -r line; do
+      lib=$(printf '%s\n' "${line}" | awk '{print $1}')
+      [[ -z "${lib}" ]] && continue
+      printf '%s\n' "${lib}"
+    done
+  done | sort -u >"${manifest}"
+
+  log "wrote runtime-deps.txt with $(wc -l <"${manifest}") entries"
+}
+
 prepare_dirs
 refresh_build_env
 install_xcb_errors
@@ -207,3 +227,4 @@ rm -rf "${OUT_ROOT}"
 mkdir -p "${OUT_ROOT}${PREFIX}"
 cp -a "${PREFIX}/." "${OUT_ROOT}${PREFIX}/"
 write_build_metadata
+generate_runtime_deps_manifest
