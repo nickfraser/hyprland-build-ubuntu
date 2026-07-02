@@ -11,11 +11,56 @@ SRC_ROOT=${SRC_ROOT:-/sources}
 BUILD_ROOT=${BUILD_ROOT:-/build}
 OUT_ROOT=${OUT_ROOT:-/out}
 
-source "${VERSION_FILE}"
 source "${BUILD_IN_CONTAINER_SCRIPT_DIR}/common.sh"
+
+trim() {
+  local value=$1
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s\n' "${value}"
+}
+
+require_file() {
+  local path=$1
+  local label=$2
+
+  [[ -f "${path}" ]] || die "${label} not found: ${path}"
+}
+
+load_version_file() {
+  local line
+
+  require_file "${VERSION_FILE}" VERSION_FILE
+
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    line="${line%%#*}"
+    line=$(trim "${line}")
+    [[ -z "${line}" ]] && continue
+
+    if [[ ! "${line}" =~ ^[A-Z0-9_]+=[A-Za-z0-9._/+:-]+$ ]]; then
+      die "invalid version assignment in ${VERSION_FILE}: ${line}"
+    fi
+
+    export "${line}"
+  done <"${VERSION_FILE}"
+}
+
+read_profile_components() {
+  local line component
+
+  require_file "${PROFILE_FILE}" PROFILE_FILE
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    line="${line%%#*}"
+    component=$(trim "${line}")
+    [[ -z "${component}" ]] && continue
+    validate_component_name "${component}"
+    printf '%s\n' "${component}"
+  done <"${PROFILE_FILE}"
+}
 
 install_xcb_errors() {
   local src_dir="${SRC_ROOT}/xcb-util-errors"
+  local repo='https://github.com/freedesktop-unofficial-mirror/xcb__util-errors.git'
 
   if [[ -f "${PREFIX_DIR}/lib/pkgconfig/xcb-errors.pc" ]]; then
     return 0
@@ -23,9 +68,9 @@ install_xcb_errors() {
 
   log "bootstrapping xcb-errors for Ubuntu 24.04"
   rm -rf "${src_dir}"
-  git clone --depth 1 --recursive \
-    https://github.com/freedesktop-unofficial-mirror/xcb__util-errors.git \
-    "${src_dir}"
+  git clone "${repo}" "${src_dir}"
+  git -C "${src_dir}" checkout --detach "${XCB_ERRORS_REF:?XCB_ERRORS_REF is required}"
+  git -C "${src_dir}" submodule update --init --recursive
 
   log "configuring xcb-errors"
   (cd "${src_dir}" && ./autogen.sh --prefix="${PREFIX}" --libdir="${PREFIX}/lib")
@@ -203,6 +248,7 @@ generate_runtime_deps_manifest() {
     ldd "${bin}" 2>/dev/null | while IFS= read -r line; do
       lib=$(printf '%s\n' "${line}" | awk '{print $1}')
       [[ -z "${lib}" ]] && continue
+      [[ "${lib}" == linux-vdso* ]] && continue
       printf '%s\n' "${lib}"
     done
   done | sort -u >"${manifest}"
@@ -212,16 +258,20 @@ generate_runtime_deps_manifest() {
 
 prepare_dirs
 refresh_build_env
+load_version_file
 install_xcb_errors
 refresh_build_env
 
 while IFS= read -r component; do
-  [[ -z "${component}" ]] && continue
   build_component "${component}"
-done <"${PROFILE_FILE}"
+done < <(read_profile_components)
 
 render_runtime_wrappers
 install_examples
+
+if [[ -z "${OUT_ROOT}" || "${OUT_ROOT}" == "/" ]]; then
+  die "OUT_ROOT must be set and not '/'"
+fi
 
 rm -rf "${OUT_ROOT}"
 mkdir -p "${OUT_ROOT}${PREFIX}"

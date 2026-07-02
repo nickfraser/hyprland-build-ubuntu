@@ -108,6 +108,8 @@ scripts/register-session.sh --prefix /opt/hyprland
 
 `register-session.sh` now fails if required files are missing from the artifact, including the Hyprland session entry, portal registration files, and the `hyprlock` PAM file.
 
+By default, registration symlinks display-manager, portal, and user service files back to the prefix. The PAM file is always copied to `/etc/pam.d/hyprlock` so privileged PAM configuration does not depend on a mutable prefix path.
+
 If you want the shipped user services enabled globally:
 
 ```bash
@@ -119,6 +121,8 @@ To remove those registration files later:
 ```bash
 scripts/unregister-session.sh
 ```
+
+New registrations record a manifest under `/usr/local/share/hyprland-build-ubuntu/` so unregister only removes files installed by this project. Legacy symlink registrations are also removed.
 
 ## Target Machine Runtime Dependencies
 
@@ -226,6 +230,7 @@ All component versions are pinned in `versions/latest.env`. Key decisions:
 
 - **libinput 1.27.0**: built from source via Meson because Ubuntu 24.04 ships 1.25.0 and `aquamarine v0.8.0` requires `>=1.26.0`. Provides `libinput_device_get_id_bustype()` needed by aquamarine.
 - **xcb-errors**: bootstrapped from the freedesktop unofficial mirror because Ubuntu 24.04 does not package `libxcb-errors-dev`. Built via autotools and installed into the prefix.
+- **xcb-errors ref**: pinned in `versions/latest.env` as `XCB_ERRORS_REF` because the mirror does not provide packaged Ubuntu 24.04 development files.
 - **CMake 3.31.6**: downloaded as a prebuilt binary tarball because Hyprland requires `cmake>=3.30` and Ubuntu 24.04 ships 3.28.3.
 
 ### Docker Build Workarounds

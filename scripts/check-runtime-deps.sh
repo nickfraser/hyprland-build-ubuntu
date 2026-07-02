@@ -19,13 +19,20 @@ Options:
 EOF
 }
 
+require_arg() {
+  local opt=$1
+  [[ $# -ge 2 && -n "${2:-}" ]] || { printf '%s requires a value\n' "${opt}" >&2; usage >&2; exit 1; }
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --prefix)
+      require_arg "$@"
       PREFIX=$2
       shift 2
       ;;
     --manifest)
+      require_arg "$@"
       MANIFEST=$2
       shift 2
       ;;
@@ -122,7 +129,19 @@ check_command() {
   fi
 }
 
-check_command xdg-desktop-portal "apt install xdg-desktop-portal"
+check_command_or_path() {
+  local command_name=$1
+  local path=$2
+  local hint=$3
+
+  if command -v "${command_name}" >/dev/null 2>&1 || [[ -x "${path}" ]]; then
+    ok "command: ${command_name}"
+  else
+    miss "command: ${command_name}" "${hint}"
+  fi
+}
+
+check_command_or_path xdg-desktop-portal /usr/libexec/xdg-desktop-portal "apt install xdg-desktop-portal"
 check_command dbus-run-session "apt install dbus"
 check_command dbus-update-activation-environment "apt install dbus"
 
@@ -156,19 +175,44 @@ printf '\n'
 if [[ -n "${MANIFEST}" ]] && [[ -f "${MANIFEST}" ]]; then
   printf '4. Manifest comparison (%s)\n\n' "${MANIFEST}"
 
+  SEARCH_DIRS=(/lib /usr/lib "${PREFIX}/lib")
+  if command -v dpkg-architecture >/dev/null 2>&1; then
+    multiarch=$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || true)
+    if [[ -n "${multiarch}" ]]; then
+      SEARCH_DIRS=(/lib/"${multiarch}" /usr/lib/"${multiarch}" "${SEARCH_DIRS[@]}")
+    fi
+  fi
+
+  manifest_lib_found() {
+    local lib=$1
+    local dir
+
+    if [[ "${lib}" = /* ]]; then
+      [[ -e "${lib}" ]] && return 0
+      return 1
+    fi
+
+    for dir in "${SEARCH_DIRS[@]}"; do
+      [[ -e "${dir}/${lib}" ]] && return 0
+    done
+
+    if command -v ldconfig >/dev/null 2>&1 && ldconfig -p 2>/dev/null | grep -Fq "${lib} ("; then
+      return 0
+    fi
+
+    return 1
+  }
+
   while IFS= read -r lib; do
     [[ -z "${lib}" ]] && continue
     [[ "${lib}" =~ ^# ]] && continue
-    # Try to find the library
-    found=0
-    for dir in /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /lib /usr/lib "${PREFIX}/lib"; do
-      if [[ -e "${dir}/${lib}" ]] || compgen -G "${dir}/${lib}*" >/dev/null 2>&1; then
-        found=1
-        ok "manifest: ${lib}"
-        break
-      fi
-    done
-    [[ "${found}" == 0 ]] && miss "manifest: ${lib}" "not found in standard search paths"
+    [[ "${lib}" == linux-vdso* ]] && continue
+
+    if manifest_lib_found "${lib}"; then
+      ok "manifest: ${lib}"
+    else
+      miss "manifest: ${lib}" "not found in standard search paths"
+    fi
   done <"${MANIFEST}"
 
   printf '\n'

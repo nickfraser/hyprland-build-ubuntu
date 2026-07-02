@@ -26,7 +26,7 @@ scripts/build-artifact.sh --prefix /opt/hyprland --output-dir dist/desktop-opt
 ## Source-built dependencies
 
 - **libinput 1.27.0**: built via Meson because `aquamarine` requires `libinput>=1.26.0` and Ubuntu 24.04 has 1.25.0.
-- **xcb-errors**: bootstrapped from `freedesktop-unofficial-mirror/xcb__util-errors` (autotools, not available in Ubuntu 24.04).
+- **xcb-errors**: bootstrapped from `freedesktop-unofficial-mirror/xcb__util-errors` at `XCB_ERRORS_REF` (autotools, not available in Ubuntu 24.04).
 - **libinput.pc/.so**: renamed to `.bak` in the Docker container so pkg-config/CMake only finds the prefix-local version.
 - **iniparser.pc**: manually created in `/usr/share/pkgconfig/` (Ubuntu 24.04's `libiniparser-dev` does not ship a `.pc` file).
 

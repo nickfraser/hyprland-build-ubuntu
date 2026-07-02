@@ -21,25 +21,35 @@ Options:
 EOF
 }
 
+require_arg() {
+  local opt=$1
+  [[ $# -ge 2 && -n "${2:-}" ]] || { printf '%s requires a value\n' "${opt}" >&2; usage >&2; exit 1; }
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --prefix)
+      require_arg "$@"
       PREFIX=$2
       shift 2
       ;;
     --profile)
+      require_arg "$@"
       PROFILE=$2
       shift 2
       ;;
     --versions)
+      require_arg "$@"
       VERSION_FILE=$2
       shift 2
       ;;
     --output-dir)
+      require_arg "$@"
       OUTPUT_DIR=$2
       shift 2
       ;;
     --image-tag)
+      require_arg "$@"
       IMAGE_TAG=$2
       shift 2
       ;;

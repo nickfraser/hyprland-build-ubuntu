@@ -99,6 +99,7 @@ RUNTIME_PACKAGES=(
   libxcb-render0
   libxcb-res0
   libxcb-shm0
+  libxcb-util1
   libxcb-xfixes0
   libxcb1
   libxcursor1
@@ -113,10 +114,12 @@ QT6_PACKAGES=(
   libqt6dbus6t64
   libqt6gui6t64
   libqt6widgets6t64
+  qt6-wayland
 )
 
 # External services needed for portal functionality
 PORTAL_PACKAGES=(
+  dbus
   xdg-desktop-portal
   xdg-desktop-portal-gtk
 )

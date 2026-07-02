@@ -26,6 +26,14 @@ die() {
   exit 1
 }
 
+validate_component_name() {
+  local component=$1
+
+  if [[ ! "${component}" =~ ^[A-Za-z0-9_.-]+$ ]] || [[ "${component}" == "." ]] || [[ "${component}" == ".." ]]; then
+    die "invalid component name '${component}'"
+  fi
+}
+
 component_repo() {
   case "$1" in
     hyprutils) printf '%s\n' 'https://github.com/hyprwm/hyprutils.git' ;;
@@ -117,7 +125,9 @@ fetch_component() {
 
   log "fetching ${component} at ${ref}"
   rm -rf "${dest}"
-  git clone --depth 1 --branch "${ref}" --recursive "${repo}" "${dest}" >/dev/null 2>&1
+  if ! git clone --depth 1 --branch "${ref}" --recursive "${repo}" "${dest}" >/dev/null; then
+    die "failed to clone ${component} from ${repo} at ${ref}"
+  fi
 }
 
 apply_component_patches() {
@@ -260,6 +270,7 @@ build_meson_component() {
 build_component() {
   local component=$1
 
+  validate_component_name "${component}"
   refresh_build_env
   fetch_component "${component}"
   apply_component_patches "${component}"

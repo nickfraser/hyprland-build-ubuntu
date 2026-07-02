@@ -6,6 +6,8 @@ ARG PROFILE=profiles/desktop.list
 ARG VERSION_FILE=versions/latest.env
 ARG CC=gcc-14
 ARG CXX=g++-14
+ARG CMAKE_VERSION=3.31.6
+ARG CMAKE_SHA256=5a1133ff103c71eb5120e2cc3de922733e7d8a26a98ae716397e8676adb367bf
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     autoconf \
@@ -107,18 +109,24 @@ RUN mv /usr/lib/x86_64-linux-gnu/pkgconfig/libinput.pc \
 RUN mv /usr/lib/x86_64-linux-gnu/libinput.so \
     /usr/lib/x86_64-linux-gnu/libinput.so.bak || true
 
-RUN curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
-    | tar xz -C /opt && \
-    ln -sf /opt/cmake-3.31.6-linux-x86_64/bin/cmake /usr/local/bin/cmake && \
-    ln -sf /opt/cmake-3.31.6-linux-x86_64/bin/ctest /usr/local/bin/ctest
+RUN curl -fsSLo /tmp/cmake-linux-x86_64.tar.gz \
+    "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" && \
+    printf '%s  %s\n' "${CMAKE_SHA256}" /tmp/cmake-linux-x86_64.tar.gz | sha256sum -c - && \
+    tar xzf /tmp/cmake-linux-x86_64.tar.gz -C /opt && \
+    ln -sf "/opt/cmake-${CMAKE_VERSION}-linux-x86_64/bin/cmake" /usr/local/bin/cmake && \
+    ln -sf "/opt/cmake-${CMAKE_VERSION}-linux-x86_64/bin/ctest" /usr/local/bin/ctest && \
+    rm -f /tmp/cmake-linux-x86_64.tar.gz
 
 WORKDIR /workspace
 COPY . /workspace
 
 ENV CC=${CC}
 ENV CXX=${CXX}
+ENV PREFIX=${PREFIX}
+ENV PROFILE_FILE=${PROFILE}
+ENV VERSION_FILE=${VERSION_FILE}
 
-RUN PREFIX="${PREFIX}" PROFILE_FILE="${PROFILE}" VERSION_FILE="${VERSION_FILE}" scripts/build-in-container.sh
+RUN scripts/build-in-container.sh
 
 FROM ubuntu:24.04 AS artifact
 COPY --from=build /out/ /out/
