@@ -89,6 +89,8 @@ RUNTIME_PACKAGES=(
   libudev1
   libuuid1
   libwayland-client0
+  libwayland-cursor0
+  libwayland-egl1
   libwayland-server0
   libwebp7
   libwacom9
@@ -96,6 +98,7 @@ RUNTIME_PACKAGES=(
   libxcb-icccm4
   libxcb-render0
   libxcb-res0
+  libxcb-shm0
   libxcb-xfixes0
   libxcb1
   libxcursor1
@@ -124,11 +127,100 @@ PAM_PACKAGES=(
   libpam-runtime
 )
 
+# GL dispatch libraries (separate from libegl1/libgl1 already listed)
+GL_DISPATCH_PACKAGES=(
+  libglx0
+  libgldispatch0
+  libopengl0
+)
+
+# X11 libraries (pulled transitively via Qt6 and GTK)
+X11_PACKAGES=(
+  libx11-6
+  libxau6
+  libxcomposite1
+  libxdamage1
+  libxdmcp6
+  libxext6
+  libxfixes3
+  libxi6
+  libxinerama1
+  libxrandr2
+  libxrender1
+)
+
+# GTK/Glib transitive dependencies (present on desktop installs, may be
+# missing on minimal/server images)
+GTK_TRANSITIVE_PACKAGES=(
+  libatk1.0-0t64
+  libatk-bridge2.0-0t64
+  libatkmm-1.6-1v5
+  libatspi2.0-0t64
+  libblkid1
+  libbrotli1
+  libcairomm-1.0-1v5
+  libdatrie1
+  libdbus-1-3
+  libdbusmenu-glib4
+  libdouble-conversion3
+  libepoxy0
+  libevdev2
+  libexpat1
+  libffi8
+  libfontconfig1
+  libfreetype6
+  libfribidi0
+  libgdk-pixbuf-2.0-0
+  libgdkmm-3.0-1t64
+  libglib2.0-0t64
+  libglibmm-2.4-1t64
+  libgraphite2-3
+  libgtk-3-0t64
+  libgudev-1.0-0
+  libharfbuzz0b
+  libicu74
+  libmount1t64
+  libpangomm-1.4-1v5
+  libpcre2-16-0
+  libpcre2-8-0
+  libthai0
+  libxml2
+)
+
+# Core C/C++ runtime (almost always present, but listed for completeness)
+CORE_RUNTIME_PACKAGES=(
+  libc6
+  libgcc-s1
+  libgomp1
+  libstdc++6
+  libssl3t64
+  zlib1g
+  libzstd1
+  liblz4-1
+  liblzma5
+  libbz2-1.0
+  libselinux1
+  libmd0
+  libmd4c0
+  libcap2
+  libcap-ng0
+  libaudit1
+  libbsd0
+  libgpg-error0
+  libgcrypt20
+  libsharpyuv0
+  libb2-1
+)
+
 ALL_PACKAGES=(
   "${RUNTIME_PACKAGES[@]}"
   "${QT6_PACKAGES[@]}"
   "${PORTAL_PACKAGES[@]}"
   "${PAM_PACKAGES[@]}"
+  "${GL_DISPATCH_PACKAGES[@]}"
+  "${X11_PACKAGES[@]}"
+  "${GTK_TRANSITIVE_PACKAGES[@]}"
+  "${CORE_RUNTIME_PACKAGES[@]}"
 )
 
 printf 'Installing %d runtime packages for Ubuntu 24.04...\n' "${#ALL_PACKAGES[@]}"
