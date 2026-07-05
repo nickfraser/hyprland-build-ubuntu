@@ -1,0 +1,7 @@
+.git/
+dist/
+build/
+sources/
+*.log
+*.swp
+.*.swp
